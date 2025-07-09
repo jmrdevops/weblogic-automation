@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DEST_HOST = '192.168.1.46'        // 🔁 Updated destination IP
+        DEST_HOST = '192.168.3.46'        // 🔁 Updated destination IP
         SSH_USER  = 'oracle'              // 🧑 User with key-based SSH access
         SSH_CRED  = 'jenkins-ssh-key'     // 🔐 Jenkins credentials ID
     }
