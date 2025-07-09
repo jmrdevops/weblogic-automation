@@ -2,35 +2,34 @@ pipeline {
     agent any
 
     environment {
-        DEST_HOST = '192.168.1.250'
-        SSH_USER  = 'oracle'
-        SSH_CRED  = 'jenkins-ssh-key'
+        DEST_HOST = '192.168.1.46'        // 🔁 Updated destination IP
+        SSH_USER  = 'oracle'              // 🧑 User with key-based SSH access
+        SSH_CRED  = 'jenkins-ssh-key'     // 🔐 Jenkins credentials ID
     }
 
     stages {
-        stage('Checkout WebLogic Automation Scripts from GitHub') {
+        stage('Checkout GitHub Repo') {
             steps {
                 git url: 'https://github.com/your-org/weblogic-automation.git', branch: 'main'
             }
         }
 
-        stage('Copy WebLogic Install Files to Destination') {
+        stage('Transfer WebLogic Install Files') {
             steps {
                 sshagent (credentials: [env.SSH_CRED]) {
                     sh """
-                        scp oraInst.loc ${SSH_USER}@${DEST_HOST}:/tmp/
-                        scp install.rsp ${SSH_USER}@${DEST_HOST}:/tmp/
+                        scp oraInst.loc install.rsp ${SSH_USER}@${DEST_HOST}:/tmp/
                     """
                 }
             }
         }
 
-        stage('Verify Installer Exists on Destination') {
+        stage('Verify WebLogic Installer') {
             steps {
                 sshagent (credentials: [env.SSH_CRED]) {
                     sh """
                         ssh ${SSH_USER}@${DEST_HOST} '
-                            [ -f /tmp/fmw_14.1.1.0.0_wls.jar ] && echo "fmw_14.1.1.0.0_wls.jar exists" || (echo "❌ fmw.jar not found in /tmp" && exit 1)
+                            [ -f /tmp/fmw.jar ] && echo "✅ fmw.jar found." || (echo "❌ fmw.jar not found in /tmp!" && exit 1)
                         '
                     """
                 }
@@ -42,14 +41,14 @@ pipeline {
                 sshagent (credentials: [env.SSH_CRED]) {
                     sh """
                         ssh ${SSH_USER}@${DEST_HOST} '
-                            java -jar /tmp/fmw_14.1.1.0.0_wls.jar -silent -responseFile /tmp/install.rsp -invPtrLoc /tmp/oraInst.loc -ignoreSysPrereqs
+                            java -jar /tmp/fmw.jar -silent -responseFile /tmp/install.rsp -invPtrLoc /tmp/oraInst.loc -ignoreSysPrereqs
                         '
                     """
                 }
             }
         }
 
-        stage('Copy Domain Creation Script') {
+        stage('Transfer Domain Creation Script') {
             steps {
                 sshagent (credentials: [env.SSH_CRED]) {
                     sh """
