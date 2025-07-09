@@ -10,7 +10,7 @@ pipeline {
     stages {
         stage('Checkout GitHub Repo') {
             steps {
-                git url: 'https://github.com/your-org/weblogic-automation.git', branch: 'main'
+                git url: 'https://github.com/jmrdevops/weblogic-automation.git', branch: 'main'
             }
         }
 
