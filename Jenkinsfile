@@ -2,57 +2,54 @@ pipeline {
     agent any
 
     environment {
-        DEST_HOST = '192.168.3.46'        // 🔁 Updated destination IP
-        SSH_USER  = 'oracle'              // 🧑 User with key-based SSH access
-        SSH_CRED  = 'jenkins-ssh-key'     // 🔐 Jenkins credentials ID
+        DEST_HOST = '192.168.3.46'         // 🖥️ Destination host
+        SSH_USER  = 'oracle'               // SSH user
+        SSH_CRED  = 'jenkins-ssh-key'      // Jenkins credentials ID
+        JAR_PATH  = '/tmp/fmw_14.1.1.0.0_wls.jar'  // JAR already on target
     }
 
     stages {
-        stage('Checkout GitHub Repo') {
+
+        stage('Checkout WebLogic Scripts from GitHub') {
             steps {
-                git url: 'https://github.com/jmrdevops/weblogic-automation.git', branch: 'main'
+                git url: 'https://github.com/your-org/weblogic-automation.git', branch: 'main'
             }
         }
 
-        stage('Transfer WebLogic Install Files') {
+        stage('Transfer WebLogic Installer Files') {
             steps {
                 sshagent (credentials: [env.SSH_CRED]) {
                     sh """
-                        scp oraInst.loc install.rsp ${SSH_USER}@${DEST_HOST}:/tmp/
+                        scp oraInst.loc install.rsp create_domain.py ${SSH_USER}@${DEST_HOST}:/tmp/
                     """
                 }
             }
         }
 
-        stage('Verify WebLogic Installer') {
+        stage('Verify Installer Exists on Target') {
             steps {
                 sshagent (credentials: [env.SSH_CRED]) {
                     sh """
                         ssh ${SSH_USER}@${DEST_HOST} '
-                            [ -f /tmp/fmw_14.1.1.0.0_wls.jar ] && echo "✅ fmw_14.1.1.0.0_wls.jar found." || (echo "❌ fmw_14.1.1.0.0_wls.jar not found in /tmp!" && exit 1)
+                            [ -f ${JAR_PATH} ] && echo "✅ Installer exists." || (echo "❌ fmw jar missing at ${JAR_PATH}" && exit 1)
                         '
                     """
                 }
             }
         }
 
-        stage('Install WebLogic') {
+        stage('Run WebLogic Installer') {
             steps {
                 sshagent (credentials: [env.SSH_CRED]) {
                     sh """
                         ssh ${SSH_USER}@${DEST_HOST} '
-                            java -jar /tmp/fmw_14.1.1.0.0_wls.jar -silent -responseFile /tmp/install.rsp -invPtrLoc /tmp/oraInst.loc -ignoreSysPrereqs
+                            java -jar ${JAR_PATH} \\
+                            -silent \\
+                            -responseFile /tmp/install.rsp \\
+                            -invPtrLoc /tmp/oraInst.loc \\
+                            -ignoreSysPrereqs \\
+                            -novalidation
                         '
-                    """
-                }
-            }
-        }
-
-        stage('Transfer Domain Creation Script') {
-            steps {
-                sshagent (credentials: [env.SSH_CRED]) {
-                    sh """
-                        scp create_domain.py ${SSH_USER}@${DEST_HOST}:/tmp/
                     """
                 }
             }
