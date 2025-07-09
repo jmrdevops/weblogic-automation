@@ -47,24 +47,25 @@ pipeline {
             }
         }
 
-        stage('Run WebLogic Installer') {
-            steps {
-                echo "🛠️ Running WebLogic installer on ${DEST_HOST}..."
-                sshagent (credentials: [env.SSH_CRED]) {
-                    sh """
-                        ssh -o StrictHostKeyChecking=no ${SSH_USER}@${DEST_HOST} '
-                            set -e
-                            java -jar ${JAR_PATH} \\
-                                -silent \\
-                                -responseFile /tmp/install.rsp \\
-                                -invPtrLoc /tmp/oraInst.loc \\
-                                -ignoreSysPrereqs \\
-                                -novalidation
-                        '
-                    """
-                }
-            }
+       stage('Run WebLogic Installer') {
+    steps {
+        sshagent (credentials: [env.SSH_CRED]) {
+            sh """
+                ssh -o StrictHostKeyChecking=no ${SSH_USER}@${DEST_HOST} '
+                    export JAVA_HOME=/opt/jdk1.8.0_202
+                    export PATH=\$JAVA_HOME/bin:\$PATH
+                    java -jar ${JAR_PATH} \\
+                        -silent \\
+                        -responseFile /tmp/install.rsp \\
+                        -invPtrLoc /tmp/oraInst.loc \\
+                        -ignoreSysPrereqs \\
+                        -novalidation
+                '
+            """
         }
+    }
+}
+
 
         stage('Create WebLogic Domain') {
             steps {
