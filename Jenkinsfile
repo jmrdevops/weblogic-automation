@@ -29,7 +29,7 @@ pipeline {
                 sshagent (credentials: [env.SSH_CRED]) {
                     sh """
                         ssh ${SSH_USER}@${DEST_HOST} '
-                            [ -f /tmp/fmw.jar ] && echo "✅ fmw.jar found." || (echo "❌ fmw.jar not found in /tmp!" && exit 1)
+                            [ -f /tmp/fmw_14.1.1.0.0_wls.jar ] && echo "✅ fmw_14.1.1.0.0_wls.jar found." || (echo "❌ fmw_14.1.1.0.0_wls.jar not found in /tmp!" && exit 1)
                         '
                     """
                 }
@@ -41,7 +41,7 @@ pipeline {
                 sshagent (credentials: [env.SSH_CRED]) {
                     sh """
                         ssh ${SSH_USER}@${DEST_HOST} '
-                            java -jar /tmp/fmw.jar -silent -responseFile /tmp/install.rsp -invPtrLoc /tmp/oraInst.loc -ignoreSysPrereqs
+                            java -jar /tmp/fmw_14.1.1.0.0_wls.jar -silent -responseFile /tmp/install.rsp -invPtrLoc /tmp/oraInst.loc -ignoreSysPrereqs
                         '
                     """
                 }
