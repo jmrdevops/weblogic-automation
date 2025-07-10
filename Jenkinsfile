@@ -80,16 +80,7 @@ pipeline {
             }
         }
     }
-    stage('Deploy if install files changed') {
-    when {
-        changeset "**/install_weblogic.sh", "**/response_file.rsp", "**/oraInst.loc"
-    }
-    steps {
-        echo "🔁 File change detected — triggering deployment..."
-        // your deploy steps here
-    }
-}
-
+   
 
     post {
         failure {
